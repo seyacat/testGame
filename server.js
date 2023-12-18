@@ -3,20 +3,33 @@ const bodyparser = require("body-parser");
 const http = require("http");
 const WS = require("ws");
 const { v4: uuidv4 } = require("uuid");
+const { Reactive } = require("./reactive/reactive.js");
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WS.Server({ server });
-const clients = {};
 
-const turn = 0;
 const cards = [];
-for (let i = 0; i < 64; i++) {
+for (let i = 0; i < 5; i++) {
   cards.push({
     id: i,
     title: `card ${i}`,
   });
 }
+
+const games = Reactive({
+  test: Reactive({ turn: 0, mainDeck: Reactive([]), players: Reactive({}) }),
+});
+
+games.subscribe(null, (data) => {
+  const { path } = data;
+  console.log("path>>>", path);
+  /*const [game, item] = path;
+  if (item === "players") {
+    const [uuid, prop] = path.slice(2);
+    console.log(uuid, prop);
+  }*/
+});
 
 shuffle = (arr) => {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -27,6 +40,10 @@ shuffle = (arr) => {
 
 const mainDeck = [...cards];
 shuffle(mainDeck);
+
+games.test.mainDeck = Reactive(mainDeck);
+
+games.test.mainDeck.push({ id: "testcard" });
 
 //express static route
 app.use(bodyparser.json());
@@ -54,25 +71,29 @@ wss.on("connection", function connection(ws) {
     } else {
       ws.id = msg.uuid;
     }
-    if (!clients[ws.id]) {
-      clients[ws.id] = { hand: [], ws };
-      drawCards(clients[ws.id], 5);
-    } else {
-      clients[ws.id].ws = ws;
+    const game = "test";
+    if (!games[game].players[ws.id]) {
+      games[game].players[ws.id] = Reactive(
+        { hand: Reactive([]), ws },
+        { subscriptionDelay: 10 }
+      );
+      drawCards("test", ws.id, 5);
     }
-    //if (clients[ws.id]) {
-    sendHand(clients[ws.id]);
-    //}
   });
 });
 
-const drawCards = (client, qty) => {
+const drawCards = (game, uuid, qty) => {
+  console.time("drawCards");
   for (let i = 0; i < qty; i++) {
     if (mainDeck.length) {
-      client.hand.push(mainDeck.pop());
+      const card = games[game].mainDeck.pop();
+      games[game].players[uuid].hand.push(card);
     }
   }
+  console.timeEnd("drawCards");
 };
+
+const moveCardTo = (client, card) => {};
 
 function broadcastAll(clients, msg) {
   for (const client of clients) {
