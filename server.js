@@ -22,13 +22,14 @@ const games = Reactive({
 });
 
 games.subscribe(null, (data) => {
-  const { path } = data;
-  console.log("path>>>", path);
-  /*const [game, item] = path;
+  const { path, pathValues } = data;
+  console.log(path);
+  const [game, item] = path;
   if (item === "players") {
     const [uuid, prop] = path.slice(2);
-    console.log(uuid, prop);
-  }*/
+    const [player] = pathValues.slice(2);
+    player.ws.send(JSON.stringify({ hand: player.hand._ }));
+  }
 });
 
 shuffle = (arr) => {
@@ -78,6 +79,8 @@ wss.on("connection", function connection(ws) {
         { subscriptionDelay: 10 }
       );
       drawCards("test", ws.id, 5);
+    } else {
+      games[game].players[ws.id].ws = ws;
     }
   });
 });
