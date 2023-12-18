@@ -9,12 +9,12 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WS.Server({ server });
 
-const cards = [];
+const cards = {};
 for (let i = 0; i < 5; i++) {
-  cards.push({
-    id: i,
+  cards[`g-card-${i}`] = {
+    id: `g-card-${i}`,
     title: `card ${i}`,
-  });
+  };
 }
 
 const games = Reactive({
@@ -23,7 +23,7 @@ const games = Reactive({
 
 games.subscribe(null, (data) => {
   const { path, pathValues } = data;
-  console.log(path);
+  console.log("Path:", path);
   const [game, item] = path;
   if (item === "players") {
     const [uuid, prop] = path.slice(2);
@@ -39,12 +39,16 @@ shuffle = (arr) => {
   }
 };
 
-games.test.cards = cards.map((c) => Reactive(c));
+games.test.cards = Object.fromEntries(
+  Object.entries(cards).map(([key, c]) => [
+    key,
+    Reactive(c, { prefix: "card" }),
+  ])
+);
 
-games.test.mainDeck = Reactive(games.test.cards);
-
-games.test.mainDeck.shift();
-games.test.mainDeck[1].test = 1;
+games.test.mainDeck = Reactive(Object.values(games.test.cards), {
+  prefix: "mainDeck",
+});
 
 games.test.mainDeck.push({ id: "testcard" });
 
@@ -71,19 +75,27 @@ wss.on("connection", function connection(ws) {
       ws.send(JSON.stringify({ uuid: ws.id }));
 
       return;
-    } else {
+    } else if (ws.id != msg.uuid) {
       ws.id = msg.uuid;
     }
     const game = "test";
     if (!games[game].players[ws.id]) {
       games[game].players[ws.id] = Reactive(
-        { hand: Reactive([]), ws },
-        { subscriptionDelay: 10 }
+        { hand: Reactive([], { prefix: "hand" }), ws },
+        { subscriptionDelay: 10, prefix: ws.id }
       );
       drawCards("test", ws.id, 5);
     } else {
       games[game].players[ws.id].ws = ws;
     }
+    if (msg.cmd === "move") {
+      console.log(
+        "CARDS",
+        games[game].cards[msg.card],
+        games[game].cards[msg.card]._path
+      );
+    }
+    ("");
   });
 });
 

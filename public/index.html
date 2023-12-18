@@ -120,6 +120,7 @@
             console.log(globals.draggedElement);
             ws.send(
               JSON.stringify({
+                uuid: localStorage.getItem("uuid"),
                 cmd: "move",
                 card: globals.draggedElement.id,
                 target: event.target.id,
