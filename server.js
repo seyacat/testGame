@@ -39,10 +39,12 @@ shuffle = (arr) => {
   }
 };
 
-const mainDeck = [...cards];
-shuffle(mainDeck);
+games.test.cards = cards.map((c) => Reactive(c));
 
-games.test.mainDeck = Reactive(mainDeck);
+games.test.mainDeck = Reactive(games.test.cards);
+
+games.test.mainDeck.shift();
+games.test.mainDeck[1].test = 1;
 
 games.test.mainDeck.push({ id: "testcard" });
 
@@ -88,7 +90,7 @@ wss.on("connection", function connection(ws) {
 const drawCards = (game, uuid, qty) => {
   console.time("drawCards");
   for (let i = 0; i < qty; i++) {
-    if (mainDeck.length) {
+    if (games[game].mainDeck.length) {
       const card = games[game].mainDeck.pop();
       games[game].players[uuid].hand.push(card);
     }

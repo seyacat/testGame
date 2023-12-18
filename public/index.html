@@ -54,12 +54,15 @@
 
     <script>
       const globals = new Reactive();
+      globals.subscribe(null, (data) => {
+        console.log(data.path);
+      });
       globals.subscribe("hand", (data) => {
         for (const cardData of data.value) {
           console.log(data);
           const card = GCard(cardData);
           card.addEventListener("dragstart", (event) => {
-            draggedElement = event.target;
+            globals.draggedElement = event.target;
           });
           hand.appendChild(card);
         }
@@ -102,7 +105,6 @@
 
         dropElement.addEventListener("dragleave", (event) => {
           event.preventDefault();
-
           event.target.classList.remove("hovered");
         });
 
@@ -112,10 +114,17 @@
 
         dropElement.addEventListener("drop", (event) => {
           event.preventDefault();
-          console.log(event);
-          console.log(this);
           if (event.target.classList.contains("drag-target")) {
-            event.target.appendChild(draggedElement);
+            //event.target.appendChild(draggedElement);
+            console.log(event.target);
+            console.log(globals.draggedElement);
+            ws.send(
+              JSON.stringify({
+                cmd: "move",
+                card: globals.draggedElement.id,
+                target: event.target.id,
+              })
+            );
           }
         });
       }
