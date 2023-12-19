@@ -68,30 +68,34 @@
         }
       });
       let draggedElement = null;
-      //get current host url
-      const host = window.location.host;
+      const wsInit = () => {
+        ws = new WebSocket(`ws://${window.location.host}`);
+        ws.onopen = function (event) {
+          ws.send(JSON.stringify({ uuid: localStorage.getItem("uuid") }));
+        };
+        ws.onmessage = function (event) {
+          let msg;
+          try {
+            msg = JSON.parse(event.data);
+          } catch (e) {
+            return;
+          }
+          if (msg.uuid) {
+            localStorage.setItem("uuid", msg.uuid);
+            return;
+          }
+          if (msg.hand) {
+            globals.hand = msg.hand;
+          }
+          console.log(event.data);
+        };
 
-      ws = new WebSocket(`ws://${host}`);
-
-      ws.onopen = function (event) {
-        ws.send(JSON.stringify({ uuid: localStorage.getItem("uuid") }));
+        ws.onclose = () => {
+          console.log("disconnected");
+          setTimeout(wsInit, 1000);
+        };
       };
-      ws.onmessage = function (event) {
-        let msg;
-        try {
-          msg = JSON.parse(event.data);
-        } catch (e) {
-          return;
-        }
-        if (msg.uuid) {
-          localStorage.setItem("uuid", msg.uuid);
-          return;
-        }
-        if (msg.hand) {
-          globals.hand = msg.hand;
-        }
-        console.log(event.data);
-      };
+      wsInit();
 
       const table = document.getElementById("table");
       const button = document.getElementById("button");
