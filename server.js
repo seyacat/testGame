@@ -1,13 +1,14 @@
 const express = require("express");
 const bodyparser = require("body-parser");
 const http = require("http");
-const WS = require("ws");
-const { v4: uuidv4 } = require("uuid");
-const { Reactive } = require("./reactive/reactive.js");
+const { Shared } = require("./shared/shared.js");
 
 const app = express();
 const server = http.createServer(app);
-const wss = new WS.Server({ server });
+
+const shared = new Shared();
+
+/*const wss = new WS.Server({ server });
 
 const cards = {};
 for (let i = 0; i < 5; i++) {
@@ -89,11 +90,9 @@ wss.on("connection", function connection(ws) {
       games[game].players[ws.id].ws = ws;
     }
     if (msg.cmd === "move") {
-      console.log(
-        "CARDS",
-        games[game].cards[msg.card],
-        games[game].cards[msg.card]._path
-      );
+      const card = games[game].cards[msg.card];
+      const target = games[game]["play-area"];
+      moveCardTo(card, target);
     }
     ("");
   });
@@ -110,7 +109,10 @@ const drawCards = (game, uuid, qty) => {
   console.timeEnd("drawCards");
 };
 
-const moveCardTo = (client, card) => {};
+const moveCardTo = (card, target) => {
+  //const parent
+  //card._parent.
+};
 
 function broadcastAll(clients, msg) {
   for (const client of clients) {
@@ -125,3 +127,6 @@ function sendHand(client) {
 server.listen(5500, () => {
   console.log("server running on port 5500");
 });
+
+
+*/

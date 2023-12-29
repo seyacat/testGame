@@ -25,12 +25,9 @@ games.test.hand.shift();
 games.test.test = 1;
 games.test.test = 2;
 
-setTimeout(() => {
-  games.test.test = 3;
-}, 2000);
+const hand = games.test.hand;
 
-setTimeout(() => {
-  games.test.test = 4;
-}, 4000);
+hand.orphan();
+hand.orphan();
 
 console.log(games.test._);
