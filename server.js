@@ -2,13 +2,32 @@ const express = require("express");
 const bodyparser = require("body-parser");
 const http = require("http");
 const { Shared } = require("./shared/shared.js");
+const { Reactive } = require("@seyacat/reactive");
 
 const app = express();
 const server = http.createServer(app);
 
-const shared = new Shared();
+const shared = new Shared({
+  server,
+  //clientPaths: { msg: { validate: (val) => typeof val === "string" } },
+});
 
-/*const wss = new WS.Server({ server });
+shared.clients.subscribe(null, (data) => {
+  const client = data.base[data.path[0]];
+  if (data.path.length === 1) {
+    if (!client.game) {
+      //TODO TEST GAME
+      client.rand = Math.random();
+      client.rand2 = Math.random();
+      client.game1 = games.test;
+    }
+  }
+});
+
+app.use(bodyparser.json());
+
+app.use("/shared", express.static("shared"));
+app.use("/", express.static("public"));
 
 const cards = {};
 for (let i = 0; i < 5; i++) {
@@ -29,7 +48,7 @@ games.subscribe(null, (data) => {
   if (item === "players") {
     const [uuid, prop] = path.slice(2);
     const [player] = pathValues.slice(2);
-    player.ws.send(JSON.stringify({ hand: player.hand._ }));
+    //player.ws.send(JSON.stringify({ hand: player.hand._ }));
   }
 });
 
@@ -40,25 +59,18 @@ shuffle = (arr) => {
   }
 };
 
-games.test.cards = Object.fromEntries(
-  Object.entries(cards).map(([key, c]) => [
-    key,
-    Reactive(c, { prefix: "card" }),
-  ])
+games.test.mainDeck = Reactive(
+  Object.fromEntries(
+    Object.entries(cards).map(([key, c]) => [
+      key,
+      Reactive(c, { prefix: "card" }),
+    ])
+  )
 );
 
-games.test.mainDeck = Reactive(Object.values(games.test.cards), {
-  prefix: "mainDeck",
-});
-
-games.test.mainDeck.push({ id: "testcard" });
-
 //express static route
-app.use(bodyparser.json());
 
-app.use("/reactive", express.static("reactive"));
-app.use("/", express.static("public"));
-
+/*
 // main user dashboard GET
 wss.on("connection", function connection(ws) {
   console.log(`Connected ${ws.id}`);
@@ -124,9 +136,11 @@ function sendHand(client) {
   client.ws.send(JSON.stringify({ hand: client.hand }));
 }
 
-server.listen(5500, () => {
-  console.log("server running on port 5500");
-});
+
 
 
 */
+
+server.listen(5500, () => {
+  console.log("server running on port 5500");
+});

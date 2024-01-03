@@ -50,89 +50,97 @@
       <div id="hand" class="drag-target"></div>
     </div>
     <script src="utils.js"></script>
-    <script src="reactive/reactive.js"></script>
+    <script src="shared/shared.js"></script>
 
     <script>
-      const globals = new Reactive();
-      globals.subscribe(null, (data) => {
-        console.log(data.path);
-      });
-      globals.subscribe("hand", (data) => {
-        for (const cardData of data.value) {
-          console.log(data);
-          const card = GCard(cardData);
-          card.addEventListener("dragstart", (event) => {
-            globals.draggedElement = event.target;
+      window.addEventListener("load", function () {
+        const globals = new Shared();
+        globals.subscribe(null, (data) => {
+          console.log({ data });
+        });
+        /*globals.subscribe("hand", (data) => {
+          for (const cardData of data.value) {
+            console.log(data);
+            const card = GCard(cardData);
+            card.addEventListener("dragstart", (event) => {
+              globals.draggedElement = event.target;
+            });
+            hand.appendChild(card);
+          }
+        });*/
+        let draggedElement = null;
+        /*const wsInit = () => {
+          ws = new WebSocket(`ws://${window.location.host}`);
+          ws.onopen = function (event) {
+            ws.send(JSON.stringify({ uuid: localStorage.getItem("uuid") }));
+          };
+          ws.onmessage = function (event) {
+            let msg;
+            try {
+              msg = JSON.parse(event.data);
+            } catch (e) {
+              return;
+            }
+            if (msg.uuid) {
+              localStorage.setItem("uuid", msg.uuid);
+              return;
+            }
+            if (msg.hand) {
+              globals.hand = msg.hand;
+            }
+            console.log(event.data);
+          };
+
+          ws.onclose = () => {
+            console.log("disconnected");
+            setTimeout(wsInit, 1000);
+          };
+        };
+        wsInit();*/
+
+        const table = document.getElementById("table");
+        const button = document.getElementById("button");
+
+        const dropElements = document.querySelectorAll(".drag-target");
+        for (dropElement of dropElements) {
+          dropElement.addEventListener("dragenter", (event) => {
+            event.preventDefault();
+            event.target.classList.add("hovered");
           });
-          hand.appendChild(card);
-        }
-      });
-      let draggedElement = null;
-      const wsInit = () => {
-        ws = new WebSocket(`ws://${window.location.host}`);
-        ws.onopen = function (event) {
-          ws.send(JSON.stringify({ uuid: localStorage.getItem("uuid") }));
-        };
-        ws.onmessage = function (event) {
-          let msg;
-          try {
-            msg = JSON.parse(event.data);
-          } catch (e) {
-            return;
-          }
-          if (msg.uuid) {
-            localStorage.setItem("uuid", msg.uuid);
-            return;
-          }
-          if (msg.hand) {
-            globals.hand = msg.hand;
-          }
-          console.log(event.data);
-        };
 
-        ws.onclose = () => {
-          console.log("disconnected");
-          setTimeout(wsInit, 1000);
-        };
-      };
-      wsInit();
+          dropElement.addEventListener("dragleave", (event) => {
+            event.preventDefault();
+            event.target.classList.remove("hovered");
+          });
 
-      const table = document.getElementById("table");
-      const button = document.getElementById("button");
+          dropElement.addEventListener("dragover", (event) => {
+            event.preventDefault();
+          });
 
-      const dropElements = document.querySelectorAll(".drag-target");
-      for (dropElement of dropElements) {
-        dropElement.addEventListener("dragenter", (event) => {
-          event.preventDefault();
-          event.target.classList.add("hovered");
-        });
-
-        dropElement.addEventListener("dragleave", (event) => {
-          event.preventDefault();
-          event.target.classList.remove("hovered");
-        });
-
-        dropElement.addEventListener("dragover", (event) => {
-          event.preventDefault();
-        });
-
-        dropElement.addEventListener("drop", (event) => {
-          event.preventDefault();
-          if (event.target.classList.contains("drag-target")) {
-            //event.target.appendChild(draggedElement);
-            console.log(event.target);
-            console.log(globals.draggedElement);
-            ws.send(
-              JSON.stringify({
+          dropElement.addEventListener("drop", (event) => {
+            event.preventDefault();
+            if (event.target.classList.contains("drag-target")) {
+              //event.target.appendChild(draggedElement);
+              console.log(event.target);
+              console.log(globals.draggedElement);
+              globals.msg = {
                 uuid: localStorage.getItem("uuid"),
                 cmd: "move",
                 card: globals.draggedElement.id,
                 target: event.target.id,
-              })
-            );
-          }
-        });
-      }
+              };
+              /*ws.send(
+                JSON.stringify({
+                  uuid: localStorage.getItem("uuid"),
+                  cmd: "move",
+                  card: globals.draggedElement.id,
+                  target: event.target.id,
+                })
+              );*/
+            }
+          });
+        }
+      });
     </script>
   </body>
 </html>
