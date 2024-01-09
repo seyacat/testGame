@@ -43,7 +43,6 @@ const games = Reactive({
 
 games.subscribe(null, (data) => {
   const { path, pathValues } = data;
-  console.log("Path:", path);
   const [game, item] = path;
   if (item === "players") {
     const [uuid, prop] = path.slice(2);
