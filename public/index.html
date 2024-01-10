@@ -54,10 +54,14 @@
 
     <script>
       window.addEventListener("load", function () {
-        const globals = new Shared();
-        globals.subscribe(null, (data) => {
-          //console.log({ data });
+        const shared = new Shared();
+        shared.subscribe(null, (data) => {
+          const { path, value, pathString } = data;
+          console.log({ pathString, value });
         });
+        setInterval(() => {
+          shared.client.message = "HI";
+        }, 1000);
         /*globals.subscribe("hand", (data) => {
           for (const cardData of data.value) {
             console.log(data);

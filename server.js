@@ -9,18 +9,25 @@ const server = http.createServer(app);
 
 const shared = new Shared({
   server,
-  //clientPaths: { msg: { validate: (val) => typeof val === "string" } },
+  clientPaths: { message: { validate: (val) => typeof val === "string" } },
 });
 
+setInterval(() => {
+  shared.server.date = new Date();
+}, 10000);
+
 shared.clients.subscribe(null, (data) => {
+  const { pathString, value } = data;
+  console.log({ pathString, value });
   const client = data.base[data.path[0]];
   if (data.path.length === 1) {
     if (!client.game) {
       //TODO TEST GAME
-      client.rand = Math.random();
-      client.rand2 = Math.random();
-      client.game1 = games.test;
+
+      client.game = games.test;
     }
+    client.rand = Math.random();
+    client.rand2 = Math.random();
   }
 });
 
