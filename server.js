@@ -13,7 +13,10 @@ const shared = new Shared({
 });
 
 setInterval(() => {
-  shared.server.date = new Date();
+  //shared.server.date = new Date();
+  for (const [uuid, client] of shared.clients) {
+    client.rand4 = uuid + " " + Math.random();
+  }
 }, 10000);
 
 shared.clients.subscribe(null, (data) => {
