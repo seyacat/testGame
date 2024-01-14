@@ -23,8 +23,8 @@ shared.clients.subscribe(null, (data) => {
   const { pathString, value } = data;
   console.log({ pathString, value });
   const client = data.base[data.path[0]];
-  if (data.path.length === 1) {
-    if (!client.game) {
+  if (client && data.path.length === 1) {
+    if (!client?.game) {
       //TODO TEST GAME
 
       client.game = games.test;
